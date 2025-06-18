@@ -16,4 +16,4 @@ spec:
       interval: 10m
   interval: 10m
   values:
-    repository: 10.190.167.131:5000
+    repository: 10.190.167.131:5001
