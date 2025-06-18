@@ -7,7 +7,7 @@ spec:
   releaseName: scenescape
   chart:
     spec:
-      chart: kubernetes/scenescape-chart
+      chart: ./kubernetes/scenescape-chart
       version: 1.0.0
       sourceRef:
         kind: GitRepository
