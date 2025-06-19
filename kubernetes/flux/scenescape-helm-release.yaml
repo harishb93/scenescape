@@ -11,8 +11,8 @@ spec:
       version: 1.0.0
       sourceRef:
         kind: GitRepository
-        name: scenescape-git-repo
-        namespace: flux-system
+        name: scenescape
+        namespace: scenescape
       interval: 10m
   interval: 10m
   values:
