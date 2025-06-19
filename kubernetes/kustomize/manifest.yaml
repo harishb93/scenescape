@@ -3,15 +3,15 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: release-name-kubeclient-sa
-  namespace: default
+  name: scenescape-kubeclient-sa
+  namespace: scenescape
 ---
 # Source: scenescape-chart/templates/kubeclient-dep.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: release-name-kubeclient
-  namespace: default
+  name: scenescape-kubeclient
+  namespace: scenescape
 rules:
 - apiGroups: ["apps"]
   resources: ["deployments"]
@@ -21,15 +21,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: release-name-kubeclient-binding
-  namespace: default
+  name: scenescape-kubeclient-binding
+  namespace: scenescape
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: release-name-kubeclient
+  name: scenescape-kubeclient
 subjects:
 - kind: ServiceAccount
-  name: release-name-kubeclient-sa
+  name: scenescape-kubeclient-sa
 ---
 # Source: scenescape-chart/templates/broker-dep.yaml
 apiVersion: v1
@@ -40,7 +40,7 @@ metadata:
     {}
 spec:
   selector:
-    app: release-name-broker
+    app: scenescape-broker
   ports:
   - name: "1883"
     protocol: TCP
@@ -61,7 +61,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: release-name-broker
+    app: scenescape-broker
   ports:
   - name: "1883"
     protocol: TCP
@@ -76,7 +76,7 @@ metadata:
   name: ntpserv
 spec:
   selector:
-    app: release-name-ntpserv
+    app: scenescape-ntpserv
   ports:
     - protocol: UDP
       port: 123
@@ -89,7 +89,7 @@ metadata:
   name: pgserver
 spec:
   selector:
-    app: release-name-pgserver
+    app: scenescape-pgserver
   ports:
   - protocol: TCP
     port: 5432
@@ -102,7 +102,7 @@ metadata:
   name: vdms
 spec:
   selector:
-    app: release-name-vdms
+    app: scenescape-vdms
   ports:
   - name: "55555"
     protocol: TCP
@@ -118,7 +118,7 @@ metadata:
     {}
 spec:
   selector:
-    app: release-name-web
+    app: scenescape-web
   ports:
   - name: "80"
     protocol: TCP
@@ -139,7 +139,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: release-name-web
+    app: scenescape-web
   ports:
   - name: "443"
     protocol: TCP
@@ -151,26 +151,26 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-broker-dep
+  name: scenescape-broker-dep
   labels:
-    app: release-name-broker
+    app: scenescape-broker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-broker
+      app: scenescape-broker
   template:
     metadata:
       labels:
-        app: release-name-broker
+        app: scenescape-broker
     spec:
       shareProcessNamespace: true
       containers:
         - image: 10.190.167.131:5001/scenescape-broker:1.4.0-alpha
-          name: release-name-broker
+          name: scenescape-broker
           env:
           - name: REST_SERVER
-            value: web.default
+            value: web.scenescape
           imagePullPolicy: Always
           readinessProbe:
             exec:
@@ -195,45 +195,45 @@ spec:
       volumes:
       - name: scenescape-broker-key
         secret:
-          secretName: release-name-scenescape-broker.key
+          secretName: scenescape-scenescape-broker.key
       - name: scenescape-broker-crt
         secret:
-          secretName: release-name-scenescape-broker.crt
+          secretName: scenescape-scenescape-broker.crt
 status: {}
 ---
 # Source: scenescape-chart/templates/camcalibration-dep.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-camcalibration-dep
+  name: scenescape-camcalibration-dep
   labels:
-    app: release-name-camcalibration
+    app: scenescape-camcalibration
   annotations:
     container.apparmor.security.beta.kubernetes.io/camcalibration: unconfined
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-camcalibration
+      app: scenescape-camcalibration
   template:
     metadata:
       labels:
-        app: release-name-camcalibration
+        app: scenescape-camcalibration
     spec:
       shareProcessNamespace: true
       initContainers:
         - name: wait-for-web-initcontainer
           image: busybox
-          command: ["/bin/sh", "-c", "until wget -q --spider http://web.default; do sleep 1; done"]
+          command: ["/bin/sh", "-c", "until wget -q --spider http://web.scenescape; do sleep 1; done"]
       containers:
         - args:
           - camcalibration
           - --broker
-          - broker.default
+          - broker.scenescape
           - --resturl
-          - https://web.default/api/v1
+          - https://web.scenescape/api/v1
           image: 10.190.167.131:5001/scenescape-camcalibration:1.4.0-alpha
-          name: release-name-camcalibration
+          name: scenescape-camcalibration
           env:
           - name: EGL_PLATFORM
             value: surfaceless
@@ -273,63 +273,63 @@ spec:
           path: /dev/fuse
       - name: certs
         secret:
-          secretName: release-name-certs
+          secretName: scenescape-certs
       - name: django
         secret:
-          secretName: release-name-django
+          secretName: scenescape-django
       - name: calibration-auth
         secret:
-          secretName: release-name-calibration.auth
+          secretName: scenescape-calibration.auth
       - name: media-storage
         persistentVolumeClaim:
-          claimName: release-name-media-pvc
+          claimName: scenescape-media-pvc
       - name: datasets-storage
         persistentVolumeClaim:
-          claimName: release-name-datasets-pvc
+          claimName: scenescape-datasets-pvc
 status: {}
 ---
 # Source: scenescape-chart/templates/kubeclient-dep.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-kubeclient-dep
+  name: scenescape-kubeclient-dep
   labels:
-    app: release-name-kubeclient
+    app: scenescape-kubeclient
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-kubeclient
+      app: scenescape-kubeclient
   template:
     metadata:
       labels:
-        app: release-name-kubeclient
+        app: scenescape-kubeclient
     spec:
       shareProcessNamespace: true
       initContainers:
       - name: wait-for-broker-initcontainer
         image: busybox
-        command: ["/bin/sh", "-c", "until nc -vz broker.default 1883; do sleep 1; done"]
+        command: ["/bin/sh", "-c", "until nc -vz broker.scenescape 1883; do sleep 1; done"]
       - name: wait-for-web-initcontainer
         image: busybox
-        command: ["/bin/sh", "-c", "until wget -q --spider http://web.default; do sleep 1; done"]
+        command: ["/bin/sh", "-c", "until wget -q --spider http://web.scenescape; do sleep 1; done"]
       containers:
         - args:
           - ./manage.py
           - kubecommand
           - --broker
-          - broker.default
+          - broker.scenescape
           - --resturl
-          - https://web.default/api/v1
+          - https://web.scenescape/api/v1
           - --ntp
-          - ntpserv.default
+          - ntpserv.scenescape
           - --auth
           - /run/secrets/percebro.auth
           image: 10.190.167.131:5001/scenescape-manager:1.4.0-alpha
-          name: release-name-kubeclient
+          name: scenescape-kubeclient
           env:
           - name: KUBERNETES_NAMESPACE
-            value: default
+            value: scenescape
           - name: HELM_RELEASE
             value: release-name
           - name: HELM_REPO
@@ -358,35 +358,35 @@ spec:
             readOnly: true
             subPath: percebro.auth
       restartPolicy: Always
-      serviceAccountName: release-name-kubeclient-sa
+      serviceAccountName: scenescape-kubeclient-sa
       volumes:
       - name: certs
         secret:
-          secretName: release-name-certs
+          secretName: scenescape-certs
       - name: django
         secret:
-          secretName: release-name-django
+          secretName: scenescape-django
       - name: percebro-auth
         secret:
-          secretName: release-name-percebro.auth
+          secretName: scenescape-percebro.auth
 status: {}
 ---
 # Source: scenescape-chart/templates/ntp-dep.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-ntp-dep
+  name: scenescape-ntp-dep
   labels:
-    app: release-name-ntpserv
+    app: scenescape-ntpserv
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-ntpserv
+      app: scenescape-ntpserv
   template:
     metadata:
       labels:
-        app: release-name-ntpserv
+        app: scenescape-ntpserv
     spec:
       shareProcessNamespace: true
       initContainers:
@@ -401,7 +401,7 @@ spec:
             mountPath: /tmp
       containers:
         - image: dockurr/chrony
-          name: release-name-ntpserv
+          name: scenescape-ntpserv
           env:
           - name: NTP_SERVERS
             value: 0.pool.ntp.org,1.pool.ntp.org,2.pool.ntp.org,3.pool.ntp.org
@@ -428,20 +428,20 @@ status: {}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-pgserver-dep
+  name: scenescape-pgserver-dep
   labels:
-    app: release-name-pgserver
+    app: scenescape-pgserver
   annotations:
     container.apparmor.security.beta.kubernetes.io/pgserver: unconfined
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-pgserver
+      app: scenescape-pgserver
   template:
     metadata:
       labels:
-        app: release-name-pgserver
+        app: scenescape-pgserver
     spec:
       shareProcessNamespace: true
       initContainers:
@@ -468,7 +468,7 @@ spec:
           - database
           - --preloadexample
           image: 10.190.167.131:5001/scenescape-manager:1.4.0-alpha
-          name: release-name-pgserver
+          name: scenescape-pgserver
           env:
           - name: SUPASS
             value: change_me
@@ -530,72 +530,72 @@ spec:
           path: /dev/fuse
       - name: django
         secret:
-          secretName: release-name-django
+          secretName: scenescape-django
       - name: controller-auth
         secret:
-          secretName: release-name-controller.auth
+          secretName: scenescape-controller.auth
       - name: percebro-auth
         secret:
-          secretName: release-name-percebro.auth
+          secretName: scenescape-percebro.auth
       - name: browser-auth
         secret:
-          secretName: release-name-browser.auth
+          secretName: scenescape-browser.auth
       - name: calibration-auth
         secret:
-          secretName: release-name-calibration.auth
+          secretName: scenescape-calibration.auth
       - name: scenescape-ca-pem
         secret:
-          secretName: release-name-scenescape-ca.pem
+          secretName: scenescape-scenescape-ca.pem
       - name: pgserver-storage
         persistentVolumeClaim:
-          claimName: release-name-pgserver-pvc
+          claimName: scenescape-pgserver-pvc
       - name: media-storage
         persistentVolumeClaim:
-          claimName: release-name-media-pvc
+          claimName: scenescape-media-pvc
       - name: sample-data-storage
         persistentVolumeClaim:
-          claimName: release-name-sample-data-pvc
+          claimName: scenescape-sample-data-pvc
       - name: user-access-config-storage
         persistentVolumeClaim:
-          claimName: release-name-user-access-config-pvc
+          claimName: scenescape-user-access-config-pvc
 status: {}
 ---
 # Source: scenescape-chart/templates/scene-dep.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-scene-dep
+  name: scenescape-scene-dep
   labels:
-    app: release-name-scene
+    app: scenescape-scene
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-scene
+      app: scenescape-scene
   template:
     metadata:
       labels:
-        app: release-name-scene
+        app: scenescape-scene
     spec:
       shareProcessNamespace: true
       initContainers:
       - name: wait-for-web-initcontainer
         image: busybox
-        command: ["/bin/sh", "-c", "until wget -q --spider http://web.default; do sleep 1; done"]
+        command: ["/bin/sh", "-c", "until wget -q --spider http://web.scenescape; do sleep 1; done"]
       containers:
         - args:
           - controller
           - --broker
-          - broker.default
+          - broker.scenescape
           - --resturl
-          - https://web.default/api/v1
+          - https://web.scenescape/api/v1
           - --ntp
-          - ntpserv.default
+          - ntpserv.scenescape
           image: 10.190.167.131:5001/scenescape-controller:1.4.0-alpha
-          name: release-name-scene
+          name: scenescape-scene
           env:
           - name: VDMS_HOSTNAME
-            value: vdms.default
+            value: vdms.scenescape
           imagePullPolicy: Always
           readinessProbe:
             exec:
@@ -625,42 +625,42 @@ spec:
       volumes:
       - name: certs
         secret:
-          secretName: release-name-certs
+          secretName: scenescape-certs
       - name: django
         secret:
-          secretName: release-name-django
+          secretName: scenescape-django
       - name: controller-auth
         secret:
-          secretName: release-name-controller.auth
+          secretName: scenescape-controller.auth
       - name: media-storage
         persistentVolumeClaim:
-          claimName: release-name-media-pvc
+          claimName: scenescape-media-pvc
       - name: controller-storage
         persistentVolumeClaim:
-          claimName: release-name-controller-pvc
+          claimName: scenescape-controller-pvc
 status: {}
 ---
 # Source: scenescape-chart/templates/vdms-dep.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-vdms-dep
+  name: scenescape-vdms-dep
   labels:
-    app: release-name-vdms
+    app: scenescape-vdms
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-vdms
+      app: scenescape-vdms
   template:
     metadata:
       labels:
-        app: release-name-vdms
+        app: scenescape-vdms
     spec:
       shareProcessNamespace: true
       containers:
         - image: intellabs/vdms:latest
-          name: release-name-vdms
+          name: scenescape-vdms
           env:
           - name: OVERRIDE_ca_file
             value: /run/secrets/certs/scenescape-ca.pem
@@ -678,27 +678,27 @@ spec:
       volumes:
       - name: certs
         secret:
-          secretName: release-name-certs
+          secretName: scenescape-certs
 status: {}
 ---
 # Source: scenescape-chart/templates/web-dep.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: release-name-web-dep
+  name: scenescape-web-dep
   labels:
-    app: release-name-web
+    app: scenescape-web
   annotations:
     container.apparmor.security.beta.kubernetes.io/web: unconfined
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: release-name-web
+      app: scenescape-web
   template:
     metadata:
       labels:
-        app: release-name-web
+        app: scenescape-web
     spec:
       shareProcessNamespace: true
       initContainers:
@@ -718,15 +718,15 @@ spec:
         - args:
           - webserver
           - --dbhost
-          - pgserver.default
+          - pgserver.scenescape
           - --broker
-          - broker.default
+          - broker.scenescape
           - --brokerauth
           - /run/secrets/browser.auth
           - --brokerrootcert
           - /run/secrets/certs/scenescape-ca.pem
           image: 10.190.167.131:5001/scenescape-manager:1.4.0-alpha
-          name: release-name-web
+          name: scenescape-web
           env:
           imagePullPolicy: Always
           securityContext:
@@ -766,19 +766,19 @@ spec:
           path: /dev/fuse
       - name: certs
         secret:
-          secretName: release-name-certs
+          secretName: scenescape-certs
       - name: django
         secret:
-          secretName: release-name-django
+          secretName: scenescape-django
       - name: browser-auth
         secret:
-          secretName: release-name-browser.auth
+          secretName: scenescape-browser.auth
       - name: media-storage
         persistentVolumeClaim:
-          claimName: release-name-media-pvc
+          claimName: scenescape-media-pvc
       - name: models-storage
         persistentVolumeClaim:
-          claimName: release-name-models-pvc
+          claimName: scenescape-models-pvc
 status: {}
 ---
 # Source: scenescape-chart/templates/ingress.yaml
@@ -811,8 +811,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: release-name-delete-sa
-  namespace: default
+  name: scenescape-delete-sa
+  namespace: scenescape
   annotations:
     "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "-5"
@@ -822,8 +822,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: release-name-secret-writer-sa
-  namespace: default
+  name: scenescape-secret-writer-sa
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-5"
@@ -833,8 +833,8 @@ metadata:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-pgserver-pvc
-  namespace: default
+  name: scenescape-pgserver-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -850,8 +850,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-models-pvc
-  namespace: default
+  name: scenescape-models-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -867,8 +867,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-datasets-pvc
-  namespace: default
+  name: scenescape-datasets-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -884,8 +884,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-media-pvc
-  namespace: default
+  name: scenescape-media-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -901,8 +901,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-videos-pvc
-  namespace: default
+  name: scenescape-videos-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -918,8 +918,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-sample-data-pvc
-  namespace: default
+  name: scenescape-sample-data-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -935,8 +935,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-controller-pvc
-  namespace: default
+  name: scenescape-controller-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -952,8 +952,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: release-name-user-access-config-pvc
-  namespace: default
+  name: scenescape-user-access-config-pvc
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-10"
@@ -969,8 +969,8 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: release-name-delete
-  namespace: default
+  name: scenescape-delete
+  namespace: scenescape
   annotations:
     "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "-4"
@@ -993,8 +993,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: release-name-secret-writer
-  namespace: default
+  name: scenescape-secret-writer
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-4"
@@ -1008,8 +1008,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: release-name-delete-binding
-  namespace: default
+  name: scenescape-delete-binding
+  namespace: scenescape
   annotations:
     "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "-3"
@@ -1017,17 +1017,17 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: release-name-delete
+  name: scenescape-delete
 subjects:
 - kind: ServiceAccount
-  name: release-name-delete-sa
+  name: scenescape-delete-sa
 ---
 # Source: scenescape-chart/templates/secrets-job.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: release-name-secret-writer-binding
-  namespace: default
+  name: scenescape-secret-writer-binding
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "-3"
@@ -1035,17 +1035,17 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: release-name-secret-writer
+  name: scenescape-secret-writer
 subjects:
 - kind: ServiceAccount
-  name: release-name-secret-writer-sa
+  name: scenescape-secret-writer-sa
 ---
 # Source: scenescape-chart/templates/delete-job.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: release-name-delete
-  namespace: default
+  name: scenescape-delete
+  namespace: scenescape
   annotations:
     "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "0"
@@ -1057,38 +1057,38 @@ spec:
       - command: ["/bin/bash", "-c"]
         args:
         - echo "Cleaning up pre-install resources.";
-          kubectl delete secret release-name-certs -n default;
-          kubectl delete secret release-name-django -n default;
-          kubectl delete secret release-name-scenescape-broker.key -n default;
-          kubectl delete secret release-name-scenescape-broker.crt -n default;
-          kubectl delete secret release-name-scenescape-ca.pem -n default;
-          kubectl delete secret release-name-percebro.auth -n default;
-          kubectl delete secret release-name-controller.auth -n default;
-          kubectl delete secret release-name-browser.auth -n default;
-          kubectl delete secret release-name-calibration.auth -n default;
-          kubectl delete pvc release-name-pgserver-pvc -n default;
-          kubectl delete pvc release-name-media-pvc -n default;
-          kubectl delete pvc release-name-datasets-pvc -n default;
-          kubectl delete pvc release-name-models-pvc -n default;
-          kubectl delete pvc release-name-videos-pvc -n default;
-          kubectl delete pvc release-name-sample-data-pvc -n default;
-          kubectl delete pvc release-name-controller-pvc -n default;
-          kubectl delete pvc release-name-user-access-config-pvc -n default;
-          kubectl delete deploy -l release=release-name -n default;
-          kubectl delete job scenescape-sources -n default --ignore-not-found;
+          kubectl delete secret scenescape-certs -n scenescape;
+          kubectl delete secret scenescape-django -n scenescape;
+          kubectl delete secret scenescape-scenescape-broker.key -n scenescape;
+          kubectl delete secret scenescape-scenescape-broker.crt -n scenescape;
+          kubectl delete secret scenescape-scenescape-ca.pem -n scenescape;
+          kubectl delete secret scenescape-percebro.auth -n scenescape;
+          kubectl delete secret scenescape-controller.auth -n scenescape;
+          kubectl delete secret scenescape-browser.auth -n scenescape;
+          kubectl delete secret scenescape-calibration.auth -n scenescape;
+          kubectl delete pvc scenescape-pgserver-pvc -n scenescape;
+          kubectl delete pvc scenescape-media-pvc -n scenescape;
+          kubectl delete pvc scenescape-datasets-pvc -n scenescape;
+          kubectl delete pvc scenescape-models-pvc -n scenescape;
+          kubectl delete pvc scenescape-videos-pvc -n scenescape;
+          kubectl delete pvc scenescape-sample-data-pvc -n scenescape;
+          kubectl delete pvc scenescape-controller-pvc -n scenescape;
+          kubectl delete pvc scenescape-user-access-config-pvc -n scenescape;
+          kubectl delete deploy -l release=release-name -n scenescape;
+          kubectl delete job scenescape-sources -n scenescape --ignore-not-found;
         image: 10.190.167.131:5001/init-secrets:1.4.0-alpha
         name: init-secrets-container
         imagePullPolicy: Always
       restartPolicy: Never
-      serviceAccountName: release-name-delete-sa
+      serviceAccountName: scenescape-delete-sa
   backoffLimit: 3
 ---
 # Source: scenescape-chart/templates/models-job.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: release-name-init-models
-  namespace: default
+  name: scenescape-init-models
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "1"
@@ -1104,7 +1104,7 @@ spec:
           chown -R 1000:1000 /root/models-storage;
           echo "Copied models for video PVCs.";
         image: 10.190.167.131:5001/init-models:1.4.0-alpha
-        name: release-name-init-models-container
+        name: scenescape-init-models-container
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: /root/models-storage/models
@@ -1114,15 +1114,15 @@ spec:
       volumes:
       - name: models-storage
         persistentVolumeClaim:
-          claimName: release-name-models-pvc
+          claimName: scenescape-models-pvc
   backoffLimit: 3
 ---
 # Source: scenescape-chart/templates/sample-data-job.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: release-name-init-sample-data
-  namespace: default
+  name: scenescape-init-sample-data
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "1"
@@ -1144,7 +1144,7 @@ spec:
           chown -R 1000:1000 /root/videos;
           echo "Copied videos folder.";
         image: 10.190.167.131:5001/init-models:1.4.0-alpha
-        name: release-name-init-models-container
+        name: scenescape-init-models-container
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: /root/sample-data-storage/sample_data
@@ -1158,21 +1158,21 @@ spec:
       volumes:
       - name: sample-data-storage
         persistentVolumeClaim:
-          claimName: release-name-sample-data-pvc
+          claimName: scenescape-sample-data-pvc
       - name: controller-storage
         persistentVolumeClaim:
-          claimName: release-name-controller-pvc
+          claimName: scenescape-controller-pvc
       - name: videos-storage
         persistentVolumeClaim:
-          claimName: release-name-videos-pvc
+          claimName: scenescape-videos-pvc
   backoffLimit: 3
 ---
 # Source: scenescape-chart/templates/secrets-job.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: release-name-init-secrets
-  namespace: default
+  name: scenescape-init-secrets
+  namespace: scenescape
   annotations:
     "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "2"
@@ -1187,15 +1187,15 @@ spec:
           make -C /root/ secrets RELEASE=${RELEASE} CERTDOMAIN=${CERTDOMAIN} CERTPASS=$(openssl rand -base64 33);
           echo "Generated secrets.";
           echo "Creating Kubernetes secrets";
-          kubectl create secret generic release-name-certs --from-file=/root/secrets/certs -n default;
-          kubectl create secret generic release-name-django --from-file=/root/secrets/django -n default;
-          kubectl create secret generic release-name-scenescape-broker.key --from-file=/root/secrets/certs/scenescape-broker.key -n default;
-          kubectl create secret generic release-name-scenescape-broker.crt --from-file=/root/secrets/certs/scenescape-broker.crt -n default;
-          kubectl create secret generic release-name-scenescape-ca.pem --from-file=/root/secrets/certs/scenescape-ca.pem -n default;
-          kubectl create secret generic release-name-percebro.auth --from-file=/root/secrets/percebro.auth -n default;
-          kubectl create secret generic release-name-controller.auth --from-file=/root/secrets/controller.auth -n default;
-          kubectl create secret generic release-name-browser.auth --from-file=/root/secrets/browser.auth -n default;
-          kubectl create secret generic release-name-calibration.auth --from-file=/root/secrets/calibration.auth -n default;
+          kubectl create secret generic scenescape-certs --from-file=/root/secrets/certs -n scenescape;
+          kubectl create secret generic scenescape-django --from-file=/root/secrets/django -n scenescape;
+          kubectl create secret generic scenescape-scenescape-broker.key --from-file=/root/secrets/certs/scenescape-broker.key -n scenescape;
+          kubectl create secret generic scenescape-scenescape-broker.crt --from-file=/root/secrets/certs/scenescape-broker.crt -n scenescape;
+          kubectl create secret generic scenescape-scenescape-ca.pem --from-file=/root/secrets/certs/scenescape-ca.pem -n scenescape;
+          kubectl create secret generic scenescape-percebro.auth --from-file=/root/secrets/percebro.auth -n scenescape;
+          kubectl create secret generic scenescape-controller.auth --from-file=/root/secrets/controller.auth -n scenescape;
+          kubectl create secret generic scenescape-browser.auth --from-file=/root/secrets/browser.auth -n scenescape;
+          kubectl create secret generic scenescape-calibration.auth --from-file=/root/secrets/calibration.auth -n scenescape;
           echo "Secrets successfully generated.";
           echo "Copying user-access-config.";
           cp /root/docker/user_access_config.json /root/user-access-config-storage/;
@@ -1209,13 +1209,13 @@ spec:
           name: user-access-config-storage
         env:
         - name: RELEASE
-          value: release-name-
+          value: scenescape-
         - name: CERTDOMAIN
-          value: default
+          value: scenescape
       restartPolicy: Never
       volumes:
       - name: user-access-config-storage
         persistentVolumeClaim:
-          claimName: release-name-user-access-config-pvc
-      serviceAccountName: release-name-secret-writer-sa
+          claimName: scenescape-user-access-config-pvc
+      serviceAccountName: scenescape-secret-writer-sa
   backoffLimit: 3
